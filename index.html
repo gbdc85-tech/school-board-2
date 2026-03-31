@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tamanend Academy - Auto Demerits</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --parchment:    #f2e8d5;
+    --parchment-dk: #e8dcc4;
+    --ink:          #1a1008;
+    --ink-faded:    #4a3828;
+    --gold:         #9a7c3a;
+    --gold-lt:      #c4a55a;
+    --rule:         #b8a070;
+    --merit-green:  #2a5c2a;
+    --demerit-red:  #7a1515;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: #1a0a0a;
+    background-image: radial-gradient(ellipse at 20% 50%, #2a0f0f 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, #0f0505 0%, transparent 50%);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    font-family: 'Crimson Pro', Georgia, serif;
+  }
+  .board {
+    width: 100%;
+    max-width: 900px;
+    background: var(--parchment);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+    min-height: 100vh;
+    padding: 0 0 40px 0;
+    position: relative;
+    box-shadow: 0 0 60px rgba(0,0,0,0.8), inset 0 0 80px rgba(0,0,0,0.08);
+  }
+  .board::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 0% 0%, rgba(80,20,10,0.2) 0%, transparent 40%),
+      radial-gradient(ellipse at 100% 0%, rgba(80,20,10,0.18) 0%, transparent 40%),
+      radial-gradient(ellipse at 0% 100%, rgba(80,20,10,0.22) 0%, transparent 40%),
+      radial-gradient(ellipse at 100% 100%, rgba(80,20,10,0.2) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .header {
+    position: relative;
+    z-index: 1;
+    background: #2a0808;
+    background-image: linear-gradient(135deg, #1a0505 0%, #3d1010 50%, #1a0505 100%);
+    padding: 22px 40px 18px;
+    text-align: center;
+    border-bottom: 3px solid #8b3a3a;
+  }
+  .header::after { content:''; display:block; height:1px; background:#c47a7a; margin-top:12px; opacity:0.4; }
+  .school-name {
+    font-family: 'IM Fell English', serif;
+    font-size: clamp(18px,4vw,32px);
+    color: #e8c4c4;
+    letter-spacing: 0.12em;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  }
+  .board-subtitle {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: clamp(11px,2vw,15px);
+    color: #c49090;
+    letter-spacing: 0.2em;
+    margin-top: 4px;
+  }
+  .board-tag {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 2px 14px;
+    border: 1px solid #8b3a3a;
+    color: #e8c4c4;
+    font-family: 'IM Fell English', serif;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+  }
+  .rule-ornament { position:relative; z-index:1; text-align:center; padding:8px 0 4px; color:#8b3a3a; font-size:18px; letter-spacing:6px; }
+  .timestamp { position:relative; z-index:1; text-align:center; font-family:'IM Fell English',serif; font-style:italic; font-size:12px; color:var(--ink-faded); padding:4px 0 10px; letter-spacing:0.05em; }
+  .section { position:relative; z-index:1; margin:16px 28px; }
+  .section-heading { font-family:'IM Fell English',serif; font-size:clamp(14px,2.5vw,20px); letter-spacing:0.18em; text-transform:uppercase; padding:7px 16px; margin-bottom:0; border-bottom:2px solid currentColor; display:flex; align-items:center; gap:10px; }
+  .section-heading.merits { color:var(--merit-green); border-color:var(--merit-green); }
+  .section-heading.demerits { color:var(--demerit-red); border-color:var(--demerit-red); }
+  .merit-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:0; border:1px solid var(--rule); border-top:none; }
+  .merit-entry { padding:9px 14px; border-right:1px solid var(--rule); border-bottom:1px solid var(--rule); display:flex; justify-content:space-between; align-items:baseline; animation:fadeIn 0.4s ease both; }
+  .merit-entry:nth-child(even) { background:rgba(0,0,0,0.03); }
+  .merit-name { font-size:clamp(11px,1.8vw,14px); color:var(--ink); font-weight:600; }
+  .merit-count { font-family:'IM Fell English',serif; font-size:clamp(13px,2vw,17px); color:var(--merit-green); font-weight:bold; margin-left:8px; white-space:nowrap; }
+  .demerit-table { width:100%; border-collapse:collapse; border:1px solid var(--rule); border-top:none; font-size:clamp(10px,1.6vw,13px); }
+  .demerit-table thead tr { background:rgba(122,21,21,0.08); }
+  .demerit-table th { font-family:'IM Fell English',serif; font-size:clamp(10px,1.5vw,13px); color:var(--demerit-red); letter-spacing:0.1em; padding:6px 10px; text-align:left; border-bottom:1px solid var(--rule); font-weight:normal; }
+  .demerit-table td { padding:6px 10px; border-bottom:1px solid rgba(184,160,112,0.4); color:var(--ink-faded); vertical-align:top; line-height:1.4; }
+  .demerit-table tr:nth-child(even) td { background:rgba(0,0,0,0.025); }
+  .demerit-table tr:last-child td { border-bottom:none; }
+  .demerit-table td.student-name { font-weight:600; color:var(--ink); white-space:nowrap; }
+  .demerit-table td.demerit-count { color:var(--demerit-red); font-weight:bold; text-align:center; white-space:nowrap; }
+  .demerit-table td.issuer { font-style:italic; font-size:0.9em; white-space:nowrap; }
+  .demerit-table td.date { font-size:0.88em; white-space:nowrap; color:var(--ink-faded); }
+  .empty { padding:16px; font-style:italic; color:var(--ink-faded); font-size:13px; text-align:center; border:1px solid var(--rule); border-top:none; background:rgba(0,0,0,0.02); }
+  .divider { position:relative; z-index:1; display:flex; align-items:center; gap:12px; padding:8px 28px; color:#8b3a3a; font-size:11px; letter-spacing:0.3em; }
+  .divider::before, .divider::after { content:''; flex:1; height:1px; background:#8b3a3a; opacity:0.5; }
+  .footer { position:relative; z-index:1; text-align:center; padding:20px 28px 0; font-family:'IM Fell English',serif; font-style:italic; font-size:11px; color:var(--rule); letter-spacing:0.08em; }
+  .status-msg { position:relative; z-index:1; text-align:center; padding:60px 20px; font-family:'IM Fell English',serif; font-style:italic; font-size:18px; color:var(--ink-faded); }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+  .error { color:var(--demerit-red); }
+</style>
+</head>
+<body>
+<div class="board">
+  <div class="header">
+    <div class="school-name">Tamanend Academy</div>
+    <div class="board-subtitle">Automated Disciplinary Register</div>
+    <div class="board-tag">Auto Demerits</div>
+  </div>
+  <div class="rule-ornament">&#10022; &#10022; &#10022;</div>
+  <div class="timestamp" id="timestamp">Loading...</div>
+  <div id="content"><div class="status-msg">Fetching records&hellip;</div></div>
+  <div class="footer">Tamanend Academy &mdash; Automated Demerit Records &mdash; Touch the board in-world to refresh</div>
+</div>
+<script>
+const BIN_ID  = '69cb72d7856a682189e55d89';
+const API_KEY = '$2a$10$s22iBYeU6ABJeflPsB6Q.uVpd/7vM1Kf0GKo6xBDcoSGd6Ql9l2tq';
+const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}/latest`;
+
+async function loadData() {
+  const tsEl = document.getElementById('timestamp');
+  const contentEl = document.getElementById('content');
+  try {
+    const res = await fetch(API_URL, { headers: { 'X-Master-Key': API_KEY } });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    const data = json.record;
+    const students = data.students || [];
+    const updated  = data.updated  || 'Unknown';
+    tsEl.textContent = 'Last updated: ' + updated;
+    renderBoard(students, contentEl);
+  } catch (err) {
+    tsEl.textContent = '';
+    contentEl.innerHTML = `<div class="status-msg error">Could not load records.<br><small>${err.message}</small></div>`;
+  }
+}
+
+function renderBoard(students, el) {
+  const withMerits   = students.filter(s => s.merits   > 0);
+  const withDemerits = students.filter(s => s.demerits > 0);
+  let html = '';
+
+  html += `<div class="section"><div class="section-heading merits"><span>&#9733;</span> Honours Roll</div>`;
+  if (withMerits.length === 0) {
+    html += `<div class="empty">No merits recorded at this time.</div>`;
+  } else {
+    html += `<div class="merit-grid">`;
+    withMerits.sort((a,b) => b.merits - a.merits).forEach(s => {
+      html += `<div class="merit-entry"><span class="merit-name">${esc(s.name)}</span><span class="merit-count">${s.merits} &#9733;</span></div>`;
+    });
+    html += `</div>`;
+  }
+  html += `</div><div class="divider">&#10022;</div>`;
+
+  html += `<div class="section"><div class="section-heading demerits"><span>&#9760;</span> Automated Disciplinary Record</div>`;
+  if (withDemerits.length === 0) {
+    html += `<div class="empty">No demerits recorded at this time.</div>`;
+  } else {
+    html += `<table class="demerit-table"><thead><tr><th>Student</th><th style="text-align:center">#</th><th>Date</th><th>Issued By</th><th>Reason</th></tr></thead><tbody>`;
+    withDemerits.forEach(s => {
+      const entries = s.demeritLog || [];
+      if (entries.length === 0) {
+        html += `<tr><td class="student-name">${esc(s.name)}</td><td class="demerit-count">${s.demerits}</td><td colspan="3" style="font-style:italic;color:#888">No log detail</td></tr>`;
+      } else {
+        entries.forEach((entry, idx) => {
+          html += `<tr><td class="student-name">${idx===0?esc(s.name):''}</td><td class="demerit-count">${idx===0?s.demerits:''}</td><td class="date">${esc(entry.date||'')}</td><td class="issuer">${esc(entry.issuer||'')}</td><td>${esc(entry.reason||'')}</td></tr>`;
+        });
+      }
+    });
+    html += `</tbody></table>`;
+  }
+  html += `</div>`;
+  el.innerHTML = html;
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+loadData();
+</script>
+</body>
+</html>
